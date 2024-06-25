@@ -132,7 +132,7 @@ void* my_malloc(size_t size)
             }
             if (best_fit){
               int diff = abs((int)(best_fit->size - size));
-              if (diff < size * 0.01){　//差分がtargetのsizeの0.01倍のものが見つかったら終了
+              if (diff < size * 0.01){ //差分がtargetのsizeの0.01倍のものが見つかったら終了
                 break;
               }
             }
@@ -209,7 +209,7 @@ void my_free(void* ptr)
     size_t size = metadata->size;
     int bin_index = getHeapIndex(size);
 
-    if ((char *)metadata + metadata->size + sizeof(my_metadata_t) == (char *)metadata -> next) {　//後ろのdataも空いていたら連結
+    if ((char *)metadata + metadata->size + sizeof(my_metadata_t) == (char *)metadata -> next) { //後ろのdataも空いていたら連結
           // Merge with next block
           metadata->size += metadata -> next ->size + sizeof(my_metadata_t);
           my_remove_from_free_list(metadata->next,metadata);
