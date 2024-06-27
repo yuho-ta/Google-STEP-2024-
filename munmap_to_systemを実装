@@ -222,7 +222,7 @@ void my_free(void* ptr)
 void my_finalize()
 {   
 
-  for (int i = 0; i < 5; i++){
+  for (int i = 0; i < 5; i++){　　//最後にmunmap_to_systemをするために隣接しているfreeノードを結合
     my_metadata_t *current = my_heap.free_head[i];
     my_metadata_t *prev = NULL;
     while(current){
@@ -241,7 +241,7 @@ void my_finalize()
       my_metadata_t *current = my_heap.free_head[i];
       my_metadata_t *prev = NULL;
       while (current){
-      if (current->size + sizeof(my_metadata_t)> 4096){
+      if (current->size + sizeof(my_metadata_t) == 4096){
         munmap_to_system(current, current->size + sizeof(my_metadata_t));
         my_remove_from_free_list(current,prev);
       
