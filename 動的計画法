@@ -1,0 +1,46 @@
+import sys
+import math
+from common import print_tour, read_input
+
+
+def distance(city1, city2):
+    return math.sqrt((city1[0] - city2[0]) ** 2 + (city1[1] - city2[1]) ** 2)
+
+
+def solve(cities):
+    N = len(cities)
+
+    dist = [[0] * N for _ in range(N)]
+    for i in range(N):
+        for j in range(i, N):
+            dist[i][j] = dist[j][i] = distance(cities[i], cities[j])
+
+    dp = [[10**8] * N for _ in range(2 ** N)]
+    dp[0][0] = 0 
+    
+    for i in range( 2 ** N):
+        for j in range(N):
+            if dp[i][j] < 10**9:  
+                for k in range(N):
+                    if (i & (2**k)) == 0:  #jが探索済みでありkが探索されていない場合
+                        new_state = i | (2**k)
+                        dp[new_state][k] = min(dp[new_state][k], dp[i][j] + dist[j][k])
+   
+    last = 0  #最小の探索路で最後に到達した場所 = 現在地
+    tour = [last]
+    visited = ((2**N) - 1) ^ 2 ** last  #最後の一つ前の状態
+    while visited != 0:
+        for k in range(N):
+            if dp[visited][k] != 10**9: #dp表は疎グラフであるため10**9は探索しないことで計算高速化
+                if round(dp[visited | 2 ** last][last] - dist[k][last],11) == round(dp[visited][k],11): #kが一つ前の探索場所であるか調べる
+                    tour.append(k)
+                    visited ^= (2 ** k)
+                    last = k
+                    break
+
+    return tour
+
+def find_best_solution(cities):
+    
+    return solve(cities)
+        

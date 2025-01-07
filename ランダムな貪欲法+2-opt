@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+
+import sys
+import math
+import heapq
+import random
+from common import print_tour, read_input
+
+
+def distance(city1, city2):
+    return math.sqrt((city1[0] - city2[0]) ** 2 + (city1[1] - city2[1]) ** 2)
+
+
+def solve(cities,dist):
+    N = len(cities)
+    current_city = 0
+    unvisited_cities = set(range(1, N))
+    tour = [current_city]
+
+    while unvisited_cities:
+        unvisited_distances = [(dist[current_city][city], city) for city in unvisited_cities]
+        
+        weights = [0.8,0.15,0.05]　#最も近いものを0.8,２番目に近いものを0.15,３番目に近いものを0.05の確率で選ぶ
+        min_value = min(3, len(unvisited_distances))
+        indices = list(range(1, min_value + 1))　#もし到達していない町が3つ以上ない場合,２番目または１番目に近いものを選ぶ
+        num = random.choices(indices, weights[:min_value], k=1)[0]
+       
+        next_city = heapq.nsmallest(num, unvisited_distances)[num-1][1]
+        unvisited_cities.remove(next_city)
+        tour.append(next_city)
+        current_city = next_city
+    tour = two_opt(tour,dist)
+    tour = or_opt(tour,dist)
+    return tour
+
+def two_opt(tour,dist):
+    N = len(tour) 
+    while True:
+        flag = 0 
+        for i in range(N-2):
+            for j in range(i+2,N):
+                if dist[tour[i]][tour[i + 1]] + dist[tour[j]][tour[(j + 1) % N]] > dist[tour[i]][tour[j]] + dist[tour[i + 1]][tour[(j + 1) % N]]:
+                    new_tour = tour[i + 1 : j + 1]
+                    tour[i + 1 : j + 1] = new_tour[::-1]
+                    flag = 1
+        if flag == 0:
+            break
+    return tour
+
+# Ashida Takakoさんを参考にさせていただいてor_opt実装
+def or_opt(tour, dist):
+    N = len(tour)
+    while True:
+        flag = 0
+        for i in range(N-1):
+            for j in range(N):
+                if i == j or (i + 1) % N == j:
+                    continue
+
+                x1 = dist[tour[i]][tour[i + 1]]
+                x2 = dist[tour[i + 1]][tour[(i + 2) % N]]
+                x3 = dist[tour[j]][tour[(j + 1) % N]]
+                x4 = dist[tour[i]][tour[(i + 2) % N]]
+                x5 = dist[tour[j]][tour[i + 1]]
+                x6 = dist[tour[i + 1]][tour[(j + 1) % N]]
+
+                if x1 + x2 + x3 > x4 + x5 + x6:
+                    del_city = tour.pop(i + 1)
+                    tour.insert(j, del_city)
+                    flag = 1
+                    break
+            if flag:
+                break
+        if flag == 0:
+            break
+    return tour 
+
+def find_best_solution(cities):
+    N = len(cities)
+
+    dist = [[0] * N for i in range(N)]
+    for i in range(N):
+        for j in range(i, N):
+            dist[i][j] = dist[j][i] = distance(cities[i], cities[j])
+    best_tour = None
+    smallest_length = float('inf')
+    for i in range(300):
+        length = 0
+        tour = solve(cities,dist)
+        for i in range(1,N):
+            length += dist[tour[i]][tour[i-1]]
+        if length < smallest_length:
+            smallest_length = length #300回行い最も近いものを答えとする
+            best_tour = tour
+    return best_tour
+        
+    
+    
+
+
+if __name__ == '__main__':
+    assert len(sys.argv) > 1
+    tour = solve(read_input(sys.argv[1]))
+    print_tour(tour)
